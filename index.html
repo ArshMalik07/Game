@@ -310,6 +310,60 @@
     transition: width 0.4s ease;
     width: 0%;
   }
+
+  /* D-Pad */
+  #dpad {
+    display: none;
+    position: relative;
+    width: 156px;
+    height: 156px;
+    margin-top: 4px;
+    flex-shrink: 0;
+  }
+
+  @media (pointer: coarse) {
+    #dpad { display: grid; }
+    #controls { display: none; }
+  }
+
+  #dpad {
+    display: grid;
+    grid-template-columns: 52px 52px 52px;
+    grid-template-rows: 52px 52px 52px;
+  }
+
+  .dpad-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,229,255,0.05);
+    border: 1px solid rgba(0,229,255,0.18);
+    color: var(--neon-cyan);
+    font-size: 20px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.1s, box-shadow 0.1s;
+    touch-action: manipulation;
+  }
+
+  .dpad-btn:active, .dpad-btn.pressed {
+    background: rgba(0,229,255,0.18);
+    box-shadow: inset 0 0 12px rgba(0,229,255,0.3), 0 0 10px rgba(0,229,255,0.2);
+    color: #fff;
+  }
+
+  .dpad-btn.up    { grid-column: 2; grid-row: 1; border-radius: 6px 6px 0 0; }
+  .dpad-btn.left  { grid-column: 1; grid-row: 2; border-radius: 6px 0 0 6px; }
+  .dpad-btn.center{ grid-column: 2; grid-row: 2; background: rgba(0,229,255,0.03); cursor: default; }
+  .dpad-btn.right { grid-column: 3; grid-row: 2; border-radius: 0 6px 6px 0; }
+  .dpad-btn.down  { grid-column: 2; grid-row: 3; border-radius: 0 0 6px 6px; }
+
+  /* show dpad always on touch devices, hide on desktop */
+  @media (hover: hover) and (pointer: fine) {
+    #dpad { display: none !important; }
+    #controls { display: flex !important; }
+  }
 </style>
 </head>
 <body>
@@ -376,6 +430,15 @@
     <span><span class="key">↑↓←→</span> MOVE</span>
     <span><span class="key">WASD</span> MOVE</span>
     <span><span class="key">P</span> PAUSE</span>
+  </div>
+
+  <!-- Mobile D-Pad -->
+  <div id="dpad">
+    <button class="dpad-btn up"    id="btn-up"    ontouchstart="dpadPress({x:0,y:-1})" ontouchend="dpadRelease('btn-up')">▲</button>
+    <button class="dpad-btn left"  id="btn-left"  ontouchstart="dpadPress({x:-1,y:0})" ontouchend="dpadRelease('btn-left')">◀</button>
+    <div    class="dpad-btn center"></div>
+    <button class="dpad-btn right" id="btn-right" ontouchstart="dpadPress({x:1,y:0})"  ontouchend="dpadRelease('btn-right')">▶</button>
+    <button class="dpad-btn down"  id="btn-down"  ontouchstart="dpadPress({x:0,y:1})"  ontouchend="dpadRelease('btn-down')">▼</button>
   </div>
 </div>
 
@@ -720,6 +783,17 @@ canvas.addEventListener('touchend', e => {
   }
   if (nextDir.x === -dir.x && nextDir.y === -dir.y) nextDir = dir;
 }, { passive: true });
+
+// D-Pad handlers
+function dpadPress(d) {
+  if (!running) { startGame(); return; }
+  if (paused) return;
+  if (!(d.x === -dir.x && d.y === -dir.y)) nextDir = d;
+}
+function dpadRelease(id) {
+  const el = document.getElementById(id);
+  if (el) { el.classList.add('pressed'); setTimeout(() => el.classList.remove('pressed'), 120); }
+}
 
 // Initial draw
 draw();
